@@ -6,6 +6,8 @@
 
 @import UIKit;
 
+static NSString * const kNullUID = @"00000000-0000-0000-0000-000000000000";
+
 @interface DeviceUID ()
 
 @property(nonatomic, strong, readonly) NSString *uidKey;
@@ -43,12 +45,16 @@
     At last, the UID is persisted if needed to.
  */
 - (NSString *)uid {
-    if (!_uid) _uid = [[self class] valueForKeychainKey:_uidKey service:_uidKey];
-    if (!_uid) _uid = [[self class] valueForUserDefaultsKey:_uidKey];
-    if (!_uid) _uid = [[self class] appleIFV];
-    if (!_uid) _uid = [[self class] randomUUID];
+    if (![self isValidUID]) _uid = [[self class] valueForKeychainKey:_uidKey service:_uidKey];
+    if (![self isValidUID]) _uid = [[self class] valueForUserDefaultsKey:_uidKey];
+    if (![self isValidUID]) _uid = [[self class] appleIFV];
+    if (![self isValidUID]) _uid = [[self class] randomUUID];
     [self save];
     return _uid;
+}
+
+- (BOOL)isValidUID {
+    return _uid && ![_uid isEqualToString:kNullUID];
 }
 
 /*! Persist UID to NSUserDefaults and Keychain, if not yet saved
